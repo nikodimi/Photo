@@ -1,8 +1,8 @@
 /**
- * Example Controller
+ * User Controller
  */
 
-const debug = require('debug')('books:example_controller');
+const debug = require('debug')('books:user_controller');
 const { matchedData, validationResult } = require('express-validator');
 const models = require('../models');
 
@@ -12,26 +12,26 @@ const models = require('../models');
  * GET /
  */
 const index = async (req, res) => {
-	const examples = await models.Example.fetchAll();
+	const users = await models.User.fetchAll();
 
 	res.send({
 		status: 'success',
-		data: examples,
+		data: users,
 	});
 }
 
 /**
  * Get a specific resource
  *
- * GET /:exampleId
+ * GET /:userId
  */
 const show = async (req, res) => {
-	const example = await new models.Example({ id: req.params.exampleId })
+	const user = await new models.User({ id: req.params.userId })
 		.fetch();
 
 	res.send({
 		status: 'success',
-		data: example,
+		data: user,
 	});
 }
 
@@ -51,18 +51,18 @@ const store = async (req, res) => {
 	const validData = matchedData(req);
 
 	try {
-		const example = await new models.Example(validData).save();
-		debug("Created new example successfully: %O", example);
+		const user = await new models.User(validData).save();
+		debug("Created new user successfully: %O", user);
 
 		res.send({
 			status: 'success',
-			data: example,
+			data: user,
 		});
 
 	} catch (error) {
 		res.status(500).send({
 			status: 'error',
-			message: 'Exception thrown in database when creating a new example.',
+			message: 'Exception thrown in database when creating a new user.',
 		});
 		throw error;
 	}
@@ -71,18 +71,18 @@ const store = async (req, res) => {
 /**
  * Update a specific resource
  *
- * PUT /:exampleId
+ * PUT /:userId
  */
 const update = async (req, res) => {
-	const exampleId = req.params.exampleId;
+	const userId = req.params.userId;
 
-	// make sure example exists
-	const example = await new models.Example({ id: exampleId }).fetch({ require: false });
-	if (!example) {
-		debug("Example to update was not found. %o", { id: exampleId });
+	// make sure user exists
+	const user = await new models.User({ id: userId }).fetch({ require: false });
+	if (!user) {
+		debug("User to update was not found. %o", { id: userId });
 		res.status(404).send({
 			status: 'fail',
-			data: 'Example Not Found',
+			data: 'User Not Found',
 		});
 		return;
 	}
@@ -97,18 +97,18 @@ const update = async (req, res) => {
 	const validData = matchedData(req);
 
 	try {
-		const updatedExample = await example.save(validData);
-		debug("Updated example successfully: %O", updatedExample);
+		const updatedUser = await user.save(validData);
+		debug("Updated user successfully: %O", updatedUser);
 
 		res.send({
 			status: 'success',
-			data: example,
+			data: user,
 		});
 
 	} catch (error) {
 		res.status(500).send({
 			status: 'error',
-			message: 'Exception thrown in database when updating a new example.',
+			message: 'Exception thrown in database when updating a new user.',
 		});
 		throw error;
 	}
@@ -117,7 +117,7 @@ const update = async (req, res) => {
 /**
  * Destroy a specific resource
  *
- * DELETE /:exampleId
+ * DELETE /:userId
  */
 const destroy = (req, res) => {
 	res.status(400).send({

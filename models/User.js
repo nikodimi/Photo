@@ -3,7 +3,7 @@
  */
 
 module.exports = (bookshelf) => {
-	return bookshelf.model('Example', {
-		tableName: 'examples',
+	return bookshelf.model('User', {
+		tableName: 'users',
 	});
 };
