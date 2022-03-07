@@ -18,9 +18,9 @@ const createRules = [
  * Update Photo validation rules
  */
 const updateRules = [
-    body('title').isLength({ min: 3 }),
-    body('url').isURL(),
-    body('comment').isLength({ min: 3 }),
+    body('title').optional().isLength({ min: 3 }),
+    body('url').optional().isURL(),
+    body('comment').optional().isLength({ min: 3 }),
 ];
 
 module.exports = {
