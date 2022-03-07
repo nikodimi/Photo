@@ -2,6 +2,7 @@
  * User Controller
  */
 
+const bcrypt = require('bcrypt');
 const debug = require('debug')('books:user_controller');
 const { matchedData, validationResult } = require('express-validator');
 const models = require('../models');
@@ -24,6 +25,17 @@ const register = async (req, res) => {
     const validData = matchedData(req);
 
     try {
+		validData.password = await bcrypt.hash(validData.password, 10);
+
+	} catch (error) {
+		res.status(500).send({
+			status: 'error',
+			message: 'Exception thrown when hashing the password.',
+		});
+		throw error;
+	}
+
+    try {
         const user = await new models.User(validData).save();
         debug('New user created: %O', user);
 
@@ -35,7 +47,7 @@ const register = async (req, res) => {
     } catch (error) {
         res.status(500).send({
             status: 'error',
-            message: 'Exception'
+            message: 'Exception thrown in database when creating a new user'
         });
         throw error;
     }
