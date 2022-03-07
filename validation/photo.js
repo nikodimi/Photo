@@ -9,14 +9,18 @@ const models = require('../models');
  * Create Photo validation rules
  */
 const createRules = [
-    body('title').exists().isLength({ min: 4 }),
+    body('title').exists().isLength({ min: 3 }),
+    body('url').exists().isURL(),
+    body('comment').isLength({ min: 3 }),
 ];
 
 /**
  * Update Photo validation rules
  */
 const updateRules = [
-    body('title').optional().isLength({ min: 4 }),
+    body('title').isLength({ min: 3 }),
+    body('url').isURL(),
+    body('comment').isLength({ min: 3 }),
 ];
 
 module.exports = {
