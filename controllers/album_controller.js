@@ -7,31 +7,41 @@ const { matchedData, validationResult } = require('express-validator');
 const models = require('../models');
 
 /**
- * Get all albums 
+ * Get all albums from authenticated user
  */
 const index = async (req, res) => {
-    const allAlbums = await models.Album.fetchAll();
+    // Lazy load the album relation
+    await req.user.load('albums');
 
     res.send({
         status: 'success',
-        data: {
-            albums: allAlbums
-        }
+        data: req.user.related('albums')
     })
 }
 
 /**
- * Get specific album with related photos
+ * Get authenticated users specific album with related photos
  */
 const show = async (req, res) => {
-    const album = await new models.Album({ id:req.params.albumId })
-        .fetch({ withRelated: ['photos']});
-    
+    // Get user with all related albums
+    const user = await models.User.fetchById(req.user.id, { withRelated: ['albums'] });
+    const userAlbums = user.related('albums');
+
+    // Find album with requested id and check if it exists
+    const album = userAlbums.find(album => album.id == req.params.albumId);
+    if (!album) {
+		return res.send({
+			status: 'fail',
+			data: "Album could not be found",
+		});
+	}
+
+    // Get the requested album with related photos
+    const albumId = await models.Album.fetchById(req.params.albumId, { withRelated: ['photos']});
+
     res.send({
         status: 'success',
-        data: {
-            album
-        }
+        data: albumId
     });
 }
 
@@ -39,7 +49,6 @@ const show = async (req, res) => {
  * Create new album
  */
 const store = async (req, res) => {
-
     // Check for validation errors
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -50,6 +59,8 @@ const store = async (req, res) => {
 
     // Get the validated data
     const validData = matchedData(req);
+    
+    validData.user_id = req.user.id;
 
     try {
         const album = await new models.Album(validData).save();
@@ -67,13 +78,13 @@ const store = async (req, res) => {
         });
         throw error;
     }
-
 }
 
 /**
  * Update specific album
  */
 const update = async (req, res) => {
+
     const albumId = req.params.albumId;
 
     // Check if album exists
@@ -104,7 +115,7 @@ const update = async (req, res) => {
 
         res.send({
             status: 'success',
-            data: album
+            data: updatedAlbum
         });
 
     } catch (error) {
@@ -145,7 +156,7 @@ const addPhoto = async (req, res) => {
 
 	try {
 		const result = await album.photos().attach(validData.album_Id);
-		debug("Added book to user successfully: %O", result);
+		debug("Added photo to album successfully: %O", result);
 
 		res.send({
 			status: 'success',
@@ -155,7 +166,7 @@ const addPhoto = async (req, res) => {
 	} catch (error) {
 		res.status(500).send({
 			status: 'error',
-			message: 'Exception thrown in database when adding a book to a user.',
+			message: 'Exception thrown in database when adding a photo to a album.',
 		});
 		throw error;
 	}
