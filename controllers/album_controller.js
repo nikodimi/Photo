@@ -84,20 +84,6 @@ const store = async (req, res) => {
  * Update specific album
  */
 const update = async (req, res) => {
-
-    const albumId = req.params.albumId;
-
-    // Check if album exists
-    const album = await new models.Album({ id: albumId }).fetch({ require: false });
-    if (!album) {
-        debug('Album was not found. %o', { id: albumId });
-        res.status(404).send({
-            status: 'fail',
-            data: 'Album not found'
-        });
-        return;
-    }
-
     // Check for validation errors
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -108,6 +94,19 @@ const update = async (req, res) => {
 
     // Get the validated data
     const validData = matchedData(req);
+
+    // Get user with all related albums
+    const user = await models.User.fetchById(req.user.id, { withRelated: ['albums'] });
+    const userAlbums = user.related('albums');
+
+    // Find album with requested id and check if it exists
+    const album = userAlbums.find(album => album.id == req.params.albumId);
+    if (!album) {
+		return res.send({
+			status: 'fail',
+			data: "Album could not be found",
+		});
+	}
 
     try {
         const updatedAlbum = await album.save(validData);
