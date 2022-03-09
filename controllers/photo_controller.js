@@ -1,5 +1,5 @@
 /**
- * Album Controller
+ * Photo Controller
  */
 
  const debug = require('debug')('books:photo_controller');
@@ -7,39 +7,43 @@
  const models = require('../models');
  
  /**
-  * Get all photos 
+  * Get all photos from authenticated user
   */
  const index = async (req, res) => {
-     const allPhotos = await models.Photo.fetchAll();
+     // eager load the photos relation
+     const user = await new models.User({ id: req.user.id }).fetch({ withRelated: ['photos']});
  
      res.send({
-         status: 'success',
-         data: {
-             albums: allPhotos
-         }
-     })
+        status: 'success',
+        data: user.related('photos'),
+    })
+}
+/**
+ * Get specific foto from authenticated user
+ */
+ const show = async (req, res) => {
+    // Get user with all related photos
+    const user = await models.User.fetchById(req.user.id, { withRelated: ['photos'] });
+    const userPhotos = user.related('photos');
+
+    // Find album with requested id and check if it exists
+    const photo = userPhotos.find(photo => photo.id == req.params.photoId);
+    if (!photo) {
+		return res.send({
+			status: 'fail',
+			data: "Photo could not be found",
+		});
+	}
+    res.send({
+        status: 'success',
+        data: photo
+    });
  }
 
 /**
- * Get specific photo with related albums
- */
- const show = async (req, res) => {
-    const photo = await new models.Photo({ id:req.params.photoId })
-        .fetch({ withRelated: ['albums']});
-    
-    res.send({
-        status: 'success',
-        data: {
-            photo
-        }
-    });
-}
-
-/**
- * Create new photo
+ * Post new photo
  */
  const store = async (req, res) => {
-
     // Check for validation errors
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -50,6 +54,8 @@
 
     // Get the validated data
     const validData = matchedData(req);
+
+    validData.user_id = req.user.id;
 
     try {
         const photo = await new models.Photo(validData).save();
