@@ -73,26 +73,12 @@
         });
         throw error;
     }
-
 }
 
 /**
  * Update specific photo
  */
  const update = async (req, res) => {
-    const photoId = req.params.photoId;
-
-    // Check if album exists
-    const photo = await new models.Photo({ id: photoId }).fetch({ require: false });
-    if (!photo) {
-        debug('Album was not found. %o', { id: photoId });
-        res.status(404).send({
-            status: 'fail',
-            data: 'Album not found'
-        });
-        return;
-    }
-
     // Check for validation errors
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -104,13 +90,26 @@
     // Get the validated data
     const validData = matchedData(req);
 
+    // Get user with all related photos
+    const user = await models.User.fetchById(req.user.id, { withRelated: ['photos'] });
+    const userPhotos = user.related('photos');
+
+    // Find photo with requested id and check if it exists
+    const photo = userPhotos.find(photo => photo.id == req.params.photoId);
+    if (!photo) {
+		return res.send({
+			status: 'fail',
+			data: "Photo could not be found",
+		});
+	}
+
     try {
         const updatedPhoto = await photo.save(validData);
-        debug('Updated book successfully: %O', updatedPhoto);
+        debug('Updated photo successfully: %O', updatedPhoto);
 
         res.send({
             status: 'success',
-            data: photo
+            data: updatedPhoto
         });
 
     } catch (error) {
