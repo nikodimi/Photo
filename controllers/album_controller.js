@@ -13,9 +13,11 @@ const index = async (req, res) => {
     // Lazy load the album relation
     await req.user.load('albums');
 
-    res.send({
+    res.status(200).send({
         status: 'success',
-        data: req.user.related('albums')
+        data: {
+            albums: req.user.related('albums'),
+        }
     })
 }
 
@@ -30,7 +32,7 @@ const show = async (req, res) => {
     // Find album with requested id and check if it exists
     const album = userAlbums.find(album => album.id == req.params.albumId);
     if (!album) {
-		return res.send({
+		return res.status(404).send({
 			status: 'fail',
 			data: "Album could not be found",
 		});
@@ -39,7 +41,7 @@ const show = async (req, res) => {
     // Get the requested album with related photos
     const albumId = await models.Album.fetchById(req.params.albumId, { withRelated: ['photos']});
 
-    res.send({
+    res.status(200).send({
         status: 'success',
         data: albumId
     });
@@ -66,7 +68,7 @@ const store = async (req, res) => {
         const album = await new models.Album(validData).save();
         debug('New album created: %O', album);
 
-        res.send({
+        res.status(200).send({
             status: 'success',
             data: album
         });
@@ -102,7 +104,7 @@ const update = async (req, res) => {
     // Find album with requested id and check if it exists
     const album = userAlbums.find(album => album.id == req.params.albumId);
     if (!album) {
-		return res.send({
+		return res.status(404).send({
 			status: 'fail',
 			data: "Album could not be found",
 		});
@@ -112,7 +114,7 @@ const update = async (req, res) => {
         const updatedAlbum = await album.save(validData);
         debug('Updated book successfully: %O', updatedAlbum);
 
-        res.send({
+        res.status(200).send({
             status: 'success',
             data: updatedAlbum
         });
@@ -150,7 +152,7 @@ const addPhoto = async (req, res) => {
 
     // Check if album with requested id exists
     if (!userAlbums) {
-		return res.send({
+		return res.status(404).send({
 			status: 'fail',
 			data: "Album could not be found",
 		});
@@ -158,7 +160,7 @@ const addPhoto = async (req, res) => {
 
     // Check if photo with requested id exists
     if (!userPhotos) {
-        return res.send({
+        return res.status(404).send({
             status: 'fail',
 			data: "photo could not be found",
 		});
@@ -166,7 +168,7 @@ const addPhoto = async (req, res) => {
 
 	// check if photo is already in the albums's list of photos
 	if (albumPhotos) {
-		return res.send({
+		return res.status(409).send({
 			status: 'fail',
 			data: 'Photo already exists.',
 		});
@@ -176,7 +178,7 @@ const addPhoto = async (req, res) => {
 		const result = await albums.photos().attach(validData.photo_id);
 		debug("Added photo to album successfully: %O", result);
 
-		res.send({
+		res.status(200).send({
 			status: 'success',
 			data: null,
 		});

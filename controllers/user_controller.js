@@ -24,6 +24,7 @@ const register = async (req, res) => {
     // Get the validated data
     const validData = matchedData(req);
 
+    // Get a hashed version of the password and overwrite with it
     try {
 		validData.password = await bcrypt.hash(validData.password, 10);
 
@@ -39,7 +40,7 @@ const register = async (req, res) => {
         const user = await new models.User(validData).save();
         debug('New user created: %O', user);
 
-        res.send({
+        res.status(200).send({
             status: 'success',
             data: user
         });

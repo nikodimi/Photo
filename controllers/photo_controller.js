@@ -13,11 +13,12 @@
      // eager load the photos relation
      const user = await new models.User({ id: req.user.id }).fetch({ withRelated: ['photos']});
  
-     res.send({
+     res.status(200).send({
         status: 'success',
         data: user.related('photos'),
     })
 }
+
 /**
  * Get specific foto from authenticated user
  */
@@ -29,12 +30,12 @@
     // Find album with requested id and check if it exists
     const photo = userPhotos.find(photo => photo.id == req.params.photoId);
     if (!photo) {
-		return res.send({
+		return res.status(404).send({
 			status: 'fail',
 			data: "Photo could not be found",
 		});
 	}
-    res.send({
+   res.status(200).send({
         status: 'success',
         data: photo
     });
@@ -61,7 +62,7 @@
         const photo = await new models.Photo(validData).save();
         debug('New photo created: %O', photo);
 
-        res.send({
+        res.status(200).send({
             status: 'success',
             data: photo
         });
@@ -97,7 +98,7 @@
     // Find photo with requested id and check if it exists
     const photo = userPhotos.find(photo => photo.id == req.params.photoId);
     if (!photo) {
-		return res.send({
+		return res.status(404).send({
 			status: 'fail',
 			data: "Photo could not be found",
 		});
@@ -107,7 +108,7 @@
         const updatedPhoto = await photo.save(validData);
         debug('Updated photo successfully: %O', updatedPhoto);
 
-        res.send({
+        return res.status(200).send({
             status: 'success',
             data: updatedPhoto
         });
