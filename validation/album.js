@@ -19,7 +19,12 @@ const updateRules = [
 	body('title').exists().isLength({ min: 3 }),
 ];
 
+const addPhoto = [
+	body('photo_id').exists().isInt(),
+];
+
 module.exports = {
 	createRules,
 	updateRules,
+	addPhoto
 }
